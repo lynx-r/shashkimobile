@@ -52,7 +52,8 @@ class ExplorePage extends StatefulWidget {
 
 class _ExplorePageState extends State<ExplorePage> {
   var _httpClient = new CustomHttpClient();
-  var _articles = new List<Widget>();
+  var _articleCards = new List<Widget>();
+  var _articles = new List<Article>();
 
   void _incrementCounter() {
     setState(() {
@@ -65,47 +66,52 @@ class _ExplorePageState extends State<ExplorePage> {
   }
 
   bool _refreshList(notification) {
+    _fetchArticles(notification);
+    return true;
+  }
+
+  _fetchArticles(notification) async {
     if (notification is ScrollEndNotification || notification == null) {
-      var url = 'https://hzvzddncfb.execute-api.eu-west-1.amazonaws.com/dev/api/v1';
-      var response = _httpClient.getUrl(Uri.parse('$url/articles?limit=20'));
-      response.then((HttpClientResponse response) {
-        List<Article> articles;
-        if (response.statusCode == HttpStatus.OK) {
-          response.transform(UTF8.decoder).listen((json) {
-            articles = JSON.decode((json), reviver: (key, value) {
-              print('ARTICLE: $key:$value');
-//              new ArticleImpl.fromJsonString(value);
-            });
-          }).onDone(() {
-            setState(() {
-              _articles.clear();
-              articles.forEach((article) {
-                _articles.add(new Card(
-                  child: new Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      new ListTile(
-                          title: new Text(article.title),
-                          subtitle: new Text(article.content.substring(100)))
-                    ],
-                  ),
-                ));
-              });
-            });
+      print('1');
+      var url =
+          'https://hzvzddncfb.execute-api.eu-west-1.amazonaws.com/dev/api/v1';
+      var response =
+          await _httpClient.getUrl(Uri.parse('$url/articles?limit=20'));
+      if (response.statusCode == HttpStatus.OK) {
+        var json = await response.transform(UTF8.decoder).join();
+        var decoded = JSON.decode(json);
+        var body = decoded['body'] as List;
+        _articles.clear();
+        body.forEach((article) {
+          _articles.add(new ArticleImpl.fromMap(article));
+        });
+
+        setState(() {
+          _articleCards.clear();
+          _articles.forEach((article) {
+            _articleCards.add(new Card(
+              child: new Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  new ListTile(
+                      title: new Text(article.title),
+                      subtitle: new Text(article.shortDescription()))
+                ],
+              ),
+            ));
           });
-        } else {
-          throw new Exception('HttpError status code: $response.statusCode');
-        }
-      });
+        });
+      } else {
+        throw new Exception('HttpError status code: $response.statusCode');
+      }
     }
-    return false;
   }
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _refreshList(null);
+    _fetchArticles(null);
   }
 
   @override
@@ -116,6 +122,7 @@ class _ExplorePageState extends State<ExplorePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
+    print('CARDS ' + _articleCards.toString());
     return new Scaffold(
       appBar: new AppBar(
         // Here we take the value from the MyHomePage object that was created by
@@ -132,7 +139,7 @@ class _ExplorePageState extends State<ExplorePage> {
               child: new ListView(
                 padding: new EdgeInsets.all(8.0),
                 itemExtent: 20.0,
-                children: _articles,
+                children: _articleCards,
               ))),
       floatingActionButton: new FloatingActionButton(
         onPressed: _incrementCounter,

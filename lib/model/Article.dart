@@ -5,4 +5,6 @@ abstract class Article {
   DateTime createdAt;
   String author;
   String boardBoxId;
+
+  String shortDescription();
 }
