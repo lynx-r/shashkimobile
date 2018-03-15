@@ -24,16 +24,8 @@ class ArticleImpl implements Article {
   String title;
 
   @override
-  String shortDescription() {
-    if (content != null) {
-      return content.length > 100 ? content.substring(100) : content;
-    } else {
-      return '';
-    }
-  }
-
-  factory ArticleImpl.fromJsonString(string) {
-    return new JsonDecoder().convert(string);
+  String getShortDescription() {
+    return content != null ? content : '';
   }
 
   factory ArticleImpl.fromMap(map) {

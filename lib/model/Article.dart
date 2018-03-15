@@ -1,4 +1,12 @@
 abstract class Article {
+  Article(
+      {this.id,
+      this.title,
+      this.content,
+      this.createdAt,
+      this.author,
+      this.boardBoxId});
+
   String id;
   String title;
   String content;
@@ -6,5 +14,5 @@ abstract class Article {
   String author;
   String boardBoxId;
 
-  String shortDescription();
+  String getShortDescription();
 }

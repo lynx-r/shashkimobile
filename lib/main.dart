@@ -1,7 +1,5 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:shashkimobile/model/Article.dart';
@@ -51,9 +49,14 @@ class ExplorePage extends StatefulWidget {
 }
 
 class _ExplorePageState extends State<ExplorePage> {
+  static const NEXT_ARTICLES = 20;
+
   var _httpClient = new CustomHttpClient();
   var _articleCards = new List<Widget>();
   var _articles = new List<Article>();
+  var _scrollController = new ScrollController();
+  var _stopLoad = false;
+  var _limitArticles = 20;
 
   void _incrementCounter() {
     setState(() {
@@ -65,45 +68,27 @@ class _ExplorePageState extends State<ExplorePage> {
     });
   }
 
-  bool _refreshList(notification) {
-    _fetchArticles(notification);
-    return true;
-  }
+  _fetchArticles() async {
+    print('1');
+    var url =
+        'https://hzvzddncfb.execute-api.eu-west-1.amazonaws.com/dev/api/v1';
+    var response =
+        await _httpClient.getUrl(Uri.parse('$url/articles?limit=$_limitArticles'));
+    if (response.statusCode == HttpStatus.OK) {
+      var json = await response.transform(UTF8.decoder).join();
+      var decoded = JSON.decode(json);
+      var body = decoded['body'] as List;
+      var articles = new List<Article>();
+      body.forEach((article) {
+        articles.add(new ArticleImpl.fromMap(article));
+      });
 
-  _fetchArticles(notification) async {
-    if (notification is ScrollEndNotification || notification == null) {
-      print('1');
-      var url =
-          'https://hzvzddncfb.execute-api.eu-west-1.amazonaws.com/dev/api/v1';
-      var response =
-          await _httpClient.getUrl(Uri.parse('$url/articles?limit=20'));
-      if (response.statusCode == HttpStatus.OK) {
-        var json = await response.transform(UTF8.decoder).join();
-        var decoded = JSON.decode(json);
-        var body = decoded['body'] as List;
-        _articles.clear();
-        body.forEach((article) {
-          _articles.add(new ArticleImpl.fromMap(article));
-        });
-
-        setState(() {
-          _articleCards.clear();
-          _articles.forEach((article) {
-            _articleCards.add(new Card(
-              child: new Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  new ListTile(
-                      title: new Text(article.title),
-                      subtitle: new Text(article.shortDescription()))
-                ],
-              ),
-            ));
-          });
-        });
-      } else {
-        throw new Exception('HttpError status code: $response.statusCode');
-      }
+      setState(() {
+        _articles = new List<Article>.from(articles);
+      });
+      _limitArticles += NEXT_ARTICLES;
+    } else {
+      throw new Exception('HttpError status code: $response.statusCode');
     }
   }
 
@@ -111,7 +96,12 @@ class _ExplorePageState extends State<ExplorePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    _fetchArticles(null);
+    _fetchArticles();
+    _scrollController.addListener(() {
+      if (_scrollController.position.atEdge) {
+        _fetchArticles();
+      }
+    });
   }
 
   @override
@@ -124,28 +114,76 @@ class _ExplorePageState extends State<ExplorePage> {
     // than having to individually change instances of widgets.
     print('CARDS ' + _articleCards.toString());
     return new Scaffold(
-      appBar: new AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: new Text(widget.title),
-        leading:
-            new IconButton(icon: new Icon(Icons.settings), onPressed: null),
-      ),
-      body: new Center(
-          // Center is a layout widget. It takes a single child and positions it
-          // in the middle of the parent.
-          child: new NotificationListener(
-              onNotification: _refreshList,
-              child: new ListView(
+        appBar: new AppBar(
+          // Here we take the value from the MyHomePage object that was created by
+          // the App.build method, and use it to set our appbar title.
+          title: new Text(widget.title),
+          leading:
+              new IconButton(icon: new Icon(Icons.settings), onPressed: null),
+        ),
+        body: new Center(
+            // Center is a layout widget. It takes a single child and positions it
+            // in the middle of the parent.
+            child: new ListView.builder(
+                controller: _scrollController,
                 padding: new EdgeInsets.all(8.0),
-                itemExtent: 20.0,
-                children: _articleCards,
-              ))),
-      floatingActionButton: new FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: new Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+                itemCount: _articles.length,
+                itemExtent: 150.0,
+                itemBuilder: (context, index) {
+                  return new Card(
+                      child: new Container(
+                          child: new Padding(
+                              padding: new EdgeInsets.all(2.0),
+                              child: new Row(children: <Widget>[
+                                new Align(
+                                  child: new Hero(
+                                      child: new Icon(Icons.add),
+                                      tag: _articles[index].title),
+                                  alignment: Alignment.topLeft,
+                                ),
+                                new Expanded(
+                                    child: new Stack(children: <Widget>[
+                                  new Align(
+                                    child: new Text(
+                                      _articles[index].title,
+                                      style: new TextStyle(
+                                          fontSize: 11.0,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    alignment: Alignment.topCenter,
+                                  ),
+                                  new Align(
+                                    child: new Padding(
+                                        padding: new EdgeInsets.all(4.0),
+                                        child: new Text(
+                                                _articles[index]
+                                                .getShortDescription(),
+                                            maxLines: 8,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: new TextStyle(
+                                                fontSize: 12.0,
+                                                fontStyle: FontStyle.italic))),
+                                    alignment: Alignment.centerRight,
+                                  ),
+                                  new Align(
+                                    child: new Text(
+                                          _articles[index]
+                                          .createdAt
+                                          .toLocal()
+                                          .toString(),
+                                      style: new TextStyle(
+                                          fontSize: 11.0,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    alignment: Alignment.bottomRight,
+                                  ),
+                                ]))
+                              ]))));
+                })),
+        floatingActionButton: new FloatingActionButton(
+          onPressed: _incrementCounter,
+          tooltip: 'Increment',
+          child: new Icon(Icons.add),
+        )); // This trailing comma makes auto-formatting nicer for build methods.
   }
 }
