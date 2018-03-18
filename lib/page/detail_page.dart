@@ -23,7 +23,7 @@ class _DetailPageState extends State<DetailPage> {
   var _httpClient = new CustomHttpClient();
   final String _articleId;
   Article _article;
-  AnimationController _controller;
+  BoardBox _boardBox;
 
   @override
   void initState() {
@@ -39,7 +39,7 @@ class _DetailPageState extends State<DetailPage> {
       ),
       body: new Center(
           child: new CustomPaint(
-        painter: new BoardPainter(),
+        painter: new BoardPainter(_boardBox),
         child: new Center(),
       )),
     );
@@ -71,8 +71,9 @@ class _DetailPageState extends State<DetailPage> {
         decoded = JSON.decode(json);
         body = decoded['body'] as Map;
         print(body);
-        var boardBox = new BoardBox.fromJson(body);
-        print(boardBox.board.toJson());
+        setState(() {
+          _boardBox = new BoardBox.fromJson(body);
+        });
       }
     } else {
       throw new Exception('HttpError status code: $response.statusCode');

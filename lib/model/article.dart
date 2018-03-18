@@ -4,7 +4,7 @@ part 'article.g.dart';
 
 @JsonSerializable()
 class Article extends Object with _$ArticleSerializerMixin {
-  Article(this.id, this.title, this.content/*, this.createdAt*/, this.author,
+  Article(this.id, this.title, this.content, this.author,
       this.boardBoxId);
 
   String id;

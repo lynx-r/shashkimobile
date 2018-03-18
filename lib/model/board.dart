@@ -1,4 +1,5 @@
 import 'package:shashkimobile/model/board_notation.dart';
+import 'package:shashkimobile/model/rules.dart';
 import 'package:shashkimobile/model/square.dart';
 
 import 'package:json_annotation/json_annotation.dart';
