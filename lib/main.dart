@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shashkimobile/page/DetailsPage.dart';
-import 'package:shashkimobile/page/ExplorePage.dart';
+import 'package:shashkimobile/page/detail_page.dart';
+import 'package:shashkimobile/page/explore_page.dart';
 
 void main() => runApp(new MyApp());
 
@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
           if (path[1] != null) {
             return new MaterialPageRoute(
               builder: (context) =>
-              new DetailsPage(path[1], title: 'Подробности'),
+              new DetailPage(path[1], title: 'Подробности'),
               settings: settings,
             );
           }

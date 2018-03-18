@@ -2,8 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:shashkimobile/model/Article.dart';
-import 'package:shashkimobile/model/ArticleImpl.dart';
+import 'package:shashkimobile/model/article.dart';
 import 'package:shashkimobile/utils/CustomHttpClent.dart';
 
 class ExplorePage extends StatefulWidget {
@@ -55,7 +54,7 @@ class _ExplorePageState extends State<ExplorePage> {
       var body = decoded['body'] as List;
       var articles = new List<Article>();
       body.forEach((article) {
-        articles.add(new ArticleImpl.fromMap(article));
+        articles.add(new Article.fromJson(article));
       });
 
       setState(() {
@@ -147,18 +146,18 @@ class _ExplorePageState extends State<ExplorePage> {
                                                 fontStyle: FontStyle.italic))),
                                     alignment: Alignment.centerRight,
                                   ),
-                                  new Align(
-                                    child: new Text(
-                                      _articles[index]
-                                          .createdAt
-                                          .toLocal()
-                                          .toString(),
-                                      style: new TextStyle(
-                                          fontSize: 11.0,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    alignment: Alignment.bottomRight,
-                                  ),
+//                                  new Align(
+//                                    child: new Text(
+//                                      _articles[index]
+//                                          .createdAt
+//                                          .toLocal()
+//                                          .toString(),
+//                                      style: new TextStyle(
+//                                          fontSize: 11.0,
+//                                          fontWeight: FontWeight.bold),
+//                                    ),
+//                                    alignment: Alignment.bottomRight,
+//                                  ),
                                 ]))
                               ]))));
                 })),
