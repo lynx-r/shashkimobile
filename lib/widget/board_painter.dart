@@ -36,55 +36,58 @@ class BoardPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (_boardBox == null) return;
     print(2);
+    var black = Colors.black54;
+    var textStyle = new TextStyle(color: Colors.black87);
     var side = min(size.width, size.height);
     var numWidth = 20.0;
     var shiftTop = 10.0;
     var shiftLeft = numWidth / 1.5;
-    var rect =
-        new Offset(shiftLeft, shiftTop) & new Size(side, side);
+    var squareWidth = (side / _boardDim);
+    var rect = new Offset(squareWidth - shiftLeft, shiftTop) &
+        new Size(squareWidth * (_boardDim - 1), side - squareWidth);
+    print(squareWidth - shiftLeft);
     var paint = new Paint();
     paint.strokeWidth = 4.0;
-    paint.color = new Color(0xFFAA00FF);
+    paint.color = black;
     paint.style = PaintingStyle.stroke;
     canvas.drawRect(rect, paint);
 
-    var squareWidth = (side / _boardDim) ;
     var squareSize = new Size(squareWidth, squareWidth);
-    var paintSquare = new Paint();
-    var white = new Color(0xFF0000F0);
-    var black = new Color(0xFFFF0FFF);
+    paint.style = PaintingStyle.fill;
 
     for (var i in _boardLength) {
       var square = _squares[i];
-      paint.color = square == null ? white : black;
       if (square != null) {
+        paint.color = black;
         var h = square.h + 1;
         var v = square.v;
         var width = squareWidth * h - shiftLeft;
+        if (h == 1) print(width);
         var rect = new Offset(width, v * squareWidth + shiftTop) & squareSize;
-        canvas.drawRect(rect, paintSquare);
+        canvas.drawRect(rect, paint);
       } else {
         var t, offset;
-        var textStyle = new TextStyle(color: Colors.red);
         var h = i % _boardDim;
         if (h == 0 && (_boardLength.length - i) != _boardDim) {
           // num left
           var row = _boardDim - i / _boardDim - 1;
           t = new TextSpan(text: '${row.toInt()}', style: textStyle);
           var row0 = (row - 1);
-          offset = new Offset(numWidth / 1.5, row0 * squareWidth + squareWidth / 3.5 + shiftTop);
+          offset = new Offset(numWidth / 1.5,
+              row0 * squareWidth + squareWidth / 3.5 + shiftTop);
         }
         if (h != 0 && _boardLength.length - i <= _boardDim) {
           // ALPH bottom
           var col = (_boardLength.length - i - _boardDim) * -1;
           print(col);
           t = new TextSpan(text: ALPH[col], style: textStyle);
-          offset = new Offset(col * squareWidth - shiftLeft + squareWidth / 2.5, squareWidth * (_boardDim - 1) + squareWidth / 6 + shiftTop);
+          offset = new Offset(col * squareWidth - shiftLeft + squareWidth / 2.5,
+              squareWidth * (_boardDim - 1) + squareWidth / 6 + shiftTop);
         }
         if (t != null) {
           var painter =
               new TextPainter(text: t, textDirection: TextDirection.ltr);
-          painter.layout(minWidth: 10.0);
+          painter.layout();
           painter.paint(canvas, offset);
         }
       }
