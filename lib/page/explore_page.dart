@@ -27,7 +27,6 @@ class _ExplorePageState extends State<ExplorePage> {
   static const NEXT_ARTICLES = 1;
 
   var _httpClient = new CustomHttpClient();
-  var _articleCards = new List<Widget>();
   var _articles = new List<Article>();
   var _scrollController = new ScrollController();
   var _limitArticles = 4;
@@ -88,7 +87,7 @@ class _ExplorePageState extends State<ExplorePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
-    print('CARDS ' + _articleCards.toString());
+    print('ARTICLES ' + _articles.toString());
     return new Scaffold(
         appBar: new AppBar(
           // Here we take the value from the MyHomePage object that was created by

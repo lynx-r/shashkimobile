@@ -1,5 +1,8 @@
+import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:shashkimobile/model/article.dart';
@@ -20,6 +23,13 @@ class DetailPage extends StatefulWidget {
 class _DetailPageState extends State<DetailPage> {
   _DetailPageState(this._articleId);
 
+  Map<String, ui.Image> _images = {};
+  List<String> _imagesNames = [
+    'black_draught',
+    'white_draught',
+    'black_queen',
+    'white_queen'
+  ];
   var _httpClient = new CustomHttpClient();
   final String _articleId;
   Article _article;
@@ -29,6 +39,7 @@ class _DetailPageState extends State<DetailPage> {
   void initState() {
     super.initState();
     _fetchArticle();
+    _loadImagesInState();
   }
 
   @override
@@ -39,7 +50,7 @@ class _DetailPageState extends State<DetailPage> {
       ),
       body: new Center(
           child: new CustomPaint(
-        painter: new BoardPainter(_boardBox),
+        painter: new BoardPainter(_images, _boardBox),
         child: new Center(),
       )),
     );
@@ -78,5 +89,40 @@ class _DetailPageState extends State<DetailPage> {
     } else {
       throw new Exception('HttpError status code: $response.statusCode');
     }
+  }
+
+  void _loadImagesInState() async {
+    Map<String, ui.Image> images = {};
+    Future.forEach(_imagesNames, (name) {
+      return _loadImages(name).then((image) {
+        print(image);
+        if (image != null) {
+          images.addAll(image);
+        }
+      });
+    }).whenComplete(() {
+      print(images);
+      setState(() {
+        _images = new HashMap.from(images);
+      });
+    });
+  }
+
+  Future<Map<String, ui.Image>> _loadImages(name) async {
+    Completer<Map<String, ui.Image>> completer = new Completer();
+    var bytes;
+    try {
+      bytes = await DefaultAssetBundle.of(context).load('images/$name.png');
+    } catch (e) {
+      print(e);
+      return new Future.sync(() => null);
+    }
+    var imageProvider = new MemoryImage(bytes.buffer.asUint8List());
+    var configuration = new ImageConfiguration();
+    var imageStream = imageProvider.resolve(configuration);
+    imageStream.addListener((imageInfo, sync) {
+      completer.complete({name: imageInfo.image});
+    });
+    return completer.future;
   }
 }

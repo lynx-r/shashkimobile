@@ -23,5 +23,11 @@ class Draught extends Object with _$DraughtSerializerMixin {
   int h;
   bool highlighted;
 
+
+  @override
+  String toString() {
+    return 'Draught{black: $black, queen: $queen, v: $v, h: $h}';
+  }
+
   factory Draught.fromJson(Map<String, dynamic> json) => _$DraughtFromJson(json);
 }
