@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -71,10 +72,10 @@ class _ExplorePageState extends State<ExplorePage> {
   @override
   void initState() {
     super.initState();
-    _fetchArticles();
+    _withRetryConnection(_fetchArticles);
     _scrollController.addListener(() {
       if (_scrollController.position.atEdge) {
-        _fetchArticles();
+        _withRetryConnection(_fetchArticles);
       }
     });
   }
@@ -165,5 +166,34 @@ class _ExplorePageState extends State<ExplorePage> {
           tooltip: 'Increment',
           child: new Icon(Icons.add),
         )); // This trailing comma makes auto-formatting nicer for build methods.
+  }
+
+  _withRetryConnection(Function func) async {
+    Future future = func();
+    var retries = [future];
+    Future.wait(retries).catchError((err) {
+      print(err);
+      showDialog(
+          context: context,
+          child: new SimpleDialog(
+            title: const Text('Ошибка соединения'),
+            children: <Widget>[
+              new SimpleDialogOption(
+                  onPressed: () {
+                    Navigator.pop(context, true);
+                  },
+                  child: new Text('Повторить попытку?')),
+              new SimpleDialogOption(
+                  onPressed: () {
+                    Navigator.pop(context, false);
+                  },
+                  child: new Text('Отмена'))
+            ],
+          )).then((res) {
+        if (res) {
+          _withRetryConnection(func);
+        }
+      });
+    });
   }
 }

@@ -1,6 +1,7 @@
-import 'dart:async';
+import 'dart:collection';
 import 'dart:math';
 import 'dart:ui' as ui;
+import 'package:collection/collection.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -12,6 +13,7 @@ import 'package:shashkimobile/model/square.dart';
 class BoardPainter extends CustomPainter {
   BoardPainter(this._images, this._boardBox) {
     _updateBoard();
+    addListener(() {});
   }
 
   static const ALPH = const {
@@ -39,8 +41,7 @@ class BoardPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (_boardBox == null)
-      return;
+    if (_boardBox == null) return;
     print(_images);
     var black = Colors.black54;
     var white = Colors.white70;
@@ -79,8 +80,7 @@ class BoardPainter extends CustomPainter {
           var color = draught.black ? 'black' : 'white';
           var image = _images['${color}_$rang'];
           print(image);
-          if (image == null)
-            continue;
+          if (image == null) continue;
           var div = image.width / rect.width;
           var scale = 1 / div;
           canvas.translate(offset.dx, offset.dy);
@@ -97,7 +97,8 @@ class BoardPainter extends CustomPainter {
           var row = _boardDim - i / _boardDim - 1;
           t = new TextSpan(text: '${row.toInt()}', style: textStyle);
           var row0 = row - 1;
-          var shiftBefore10For10Dim = (row < 10 ? (_boardDim >= 10 ? 5.0 : 0) : 0);
+          var shiftBefore10For10Dim =
+              (row < 10 ? (_boardDim >= 10 ? 5.0 : 0) : 0);
           offset = new Offset(shiftLeft + shiftBefore10For10Dim,
               row0 * squareWidth + squareWidth / 3.5 + shiftTop);
         }
@@ -145,9 +146,11 @@ class BoardPainter extends CustomPainter {
   // Therefore we return false here. If we had fields (set
   // from the constructor) then we would return true if any
   // of them differed from the same fields on the oldDelegate.
-  bool shouldRepaint(BoardPainter oldDelegate) => true;
+  bool shouldRepaint(BoardPainter oldDelegate) =>
+      oldDelegate._boardBox != _boardBox ||
+      !new MapEquality().equals(oldDelegate._images, _images);
 
-  bool shouldRebuildSemantics(BoardPainter oldDelegate) => true;
+//  bool shouldRebuildSemantics(BoardPainter oldDelegate) => true;
 
   void _updateBoard() {
     if (_boardBox != null) {
