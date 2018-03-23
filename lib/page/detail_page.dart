@@ -7,7 +7,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:shashkimobile/model/article.dart';
 import 'package:shashkimobile/model/board_box.dart';
-import 'package:shashkimobile/utils/CustomHttpClent.dart';
+import 'package:shashkimobile/utils/custom_http_clent.dart';
+import 'package:shashkimobile/utils/utils.dart';
 import 'package:shashkimobile/widget/board_painter.dart';
 
 class DetailPage extends StatefulWidget {
@@ -38,7 +39,7 @@ class _DetailPageState extends State<DetailPage> {
   @override
   void initState() {
     super.initState();
-    _fetchArticle();
+    retryOnError(_fetchArticle);
     _loadImagesInState();
   }
 

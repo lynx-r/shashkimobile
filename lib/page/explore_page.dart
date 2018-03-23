@@ -4,7 +4,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:shashkimobile/model/article.dart';
-import 'package:shashkimobile/utils/CustomHttpClent.dart';
+import 'package:shashkimobile/utils/custom_http_clent.dart';
+import 'package:shashkimobile/utils/utils.dart';
 
 class ExplorePage extends StatefulWidget {
   ExplorePage({Key key, this.title}) : super(key: key);
@@ -31,6 +32,26 @@ class _ExplorePageState extends State<ExplorePage> {
   var _articles = new List<Article>();
   var _scrollController = new ScrollController();
   var _limitArticles = 4;
+
+  Future<bool> _showDialog() {
+    return showDialog(
+        context: context,
+        child: new SimpleDialog(
+          title: const Text('Ошибка соединения'),
+          children: <Widget>[
+            new SimpleDialogOption(
+                onPressed: () {
+                  Navigator.pop(context, true);
+                },
+                child: new Text('Повторить попытку?')),
+            new SimpleDialogOption(
+                onPressed: () {
+                  Navigator.pop(context, false);
+                },
+                child: new Text('Отмена'))
+          ],
+        ));
+  }
 
   void _incrementCounter() {
     setState(() {
@@ -72,10 +93,10 @@ class _ExplorePageState extends State<ExplorePage> {
   @override
   void initState() {
     super.initState();
-    _withRetryConnection(_fetchArticles);
+    retryOnError(_fetchArticles, showDialog: _showDialog);
     _scrollController.addListener(() {
       if (_scrollController.position.atEdge) {
-        _withRetryConnection(_fetchArticles);
+        retryOnError(_fetchArticles, showDialog: _showDialog);
       }
     });
   }
@@ -166,34 +187,5 @@ class _ExplorePageState extends State<ExplorePage> {
           tooltip: 'Increment',
           child: new Icon(Icons.add),
         )); // This trailing comma makes auto-formatting nicer for build methods.
-  }
-
-  _withRetryConnection(Function func) async {
-    Future future = func();
-    var retries = [future];
-    Future.wait(retries).catchError((err) {
-      print(err);
-      showDialog(
-          context: context,
-          child: new SimpleDialog(
-            title: const Text('Ошибка соединения'),
-            children: <Widget>[
-              new SimpleDialogOption(
-                  onPressed: () {
-                    Navigator.pop(context, true);
-                  },
-                  child: new Text('Повторить попытку?')),
-              new SimpleDialogOption(
-                  onPressed: () {
-                    Navigator.pop(context, false);
-                  },
-                  child: new Text('Отмена'))
-            ],
-          )).then((res) {
-        if (res) {
-          _withRetryConnection(func);
-        }
-      });
-    });
   }
 }
