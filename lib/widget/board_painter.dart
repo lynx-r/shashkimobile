@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'dart:collection';
 import 'dart:math';
 import 'dart:ui' as ui;
@@ -11,11 +12,6 @@ import 'package:shashkimobile/model/rules.dart';
 import 'package:shashkimobile/model/square.dart';
 
 class BoardPainter extends CustomPainter {
-  BoardPainter(this._images, this._boardBox) {
-    _updateBoard();
-    addListener(() {});
-  }
-
   static const ALPH = const {
     1: 'a',
     2: 'b',
@@ -37,12 +33,39 @@ class BoardPainter extends CustomPainter {
 
   BoardBox _boardBox;
 
+  Offset _point;
+
   Map<String, ui.Image> _images = {};
+  var strokes = new List<List<Offset>>();
+
+  BoardPainter(this._point, this._boardBox, this._images) {
+    this.updateBoard(_boardBox, _images);
+  }
+
+//  void startStroke(Offset position) {
+//    _point = position;
+//    notifyListeners();
+//  }
+
+//  void appendStroke(Offset position) {
+//    print("appendStroke");
+//    _point = position;
+//    var stroke = strokes.last;
+//    stroke.add(position);
+//    notifyListeners();
+//  }
+
+//  void endStroke() {
+//    notifyListeners();
+//  }
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (_boardBox == null) return;
-    print(_images);
+    if (_boardBox == null) {
+      print('Canvas not printed');
+      return;
+    }
+    print('Images got $_images');
     var black = Colors.black54;
     var white = Colors.white70;
     var side = size.shortestSide;
@@ -53,11 +76,20 @@ class BoardPainter extends CustomPainter {
     var textStyle = new TextStyle(color: Colors.black87, fontSize: 14.0);
     var rect = new Offset(squareWidth - shiftLeft, shiftTop) &
         new Size(side - squareWidth, side - squareWidth);
+    print(rect);
     var paint = new Paint();
     paint.strokeWidth = 2.0;
     paint.color = black;
     paint.style = PaintingStyle.stroke;
     canvas.drawRect(rect, paint);
+
+    if (_point != null) {
+      Paint strokePaint = new Paint();
+      strokePaint.color = Colors.black;
+      strokePaint.style = PaintingStyle.fill;
+      canvas.drawCircle(_point, 5.0, strokePaint);
+      print(_point);
+    }
 
     var squareSize = new Size(squareWidth, squareWidth);
     paint.style = PaintingStyle.fill;
@@ -65,7 +97,6 @@ class BoardPainter extends CustomPainter {
     for (var i in _boardLength) {
       var square = _squares[i];
       if (square != null) {
-        print(square.draught);
         paint.color = black;
         var h = square.h + 1;
         var v = square.v;
@@ -79,7 +110,6 @@ class BoardPainter extends CustomPainter {
           var rang = draught.queen ? 'queen' : 'draught';
           var color = draught.black ? 'black' : 'white';
           var image = _images['${color}_$rang'];
-          print(image);
           if (image == null) continue;
           var div = image.width / rect.width;
           var scale = 1 / div;
@@ -146,13 +176,19 @@ class BoardPainter extends CustomPainter {
   // Therefore we return false here. If we had fields (set
   // from the constructor) then we would return true if any
   // of them differed from the same fields on the oldDelegate.
-  bool shouldRepaint(BoardPainter oldDelegate) =>
-      oldDelegate._boardBox != _boardBox ||
-      !new MapEquality().equals(oldDelegate._images, _images);
+  bool shouldRepaint(BoardPainter oldDelegate) {
+    return oldDelegate._point != _point ||
+        oldDelegate._boardBox != _boardBox ||
+        !new MapEquality().equals(oldDelegate._images, _images);
+  }
 
-//  bool shouldRebuildSemantics(BoardPainter oldDelegate) => true;
+  bool shouldRebuildSemantics(BoardPainter oldDelegate) =>
+      shouldRepaint(oldDelegate);
 
-  void _updateBoard() {
+  void updateBoard(boardBox, images) {
+    this._boardBox = boardBox;
+    this._images = images;
+
     if (_boardBox != null) {
       var rules = Rules.fromString(_boardBox.board.rules);
       _boardDim = rules.dimension + 1;
@@ -173,4 +209,7 @@ class BoardPainter extends CustomPainter {
       }
     }
   }
+
+  @override
+  bool hitTest(ui.Offset position) => null;
 }

@@ -22,7 +22,13 @@ class DetailPage extends StatefulWidget {
 }
 
 class _DetailPageState extends State<DetailPage> {
+  ui.Offset _paintDownOffset;
+
   _DetailPageState(this._articleId);
+
+  GlobalKey _paintKey = new GlobalKey();
+  CustomPaint _canvas;
+  BoardPainter _boardPainter;
 
   Map<String, ui.Image> _images = {};
   List<String> _imagesNames = [
@@ -35,6 +41,7 @@ class _DetailPageState extends State<DetailPage> {
   final String _articleId;
   Article _article;
   BoardBox _boardBox;
+  AppBar _appBar;
 
   @override
   void initState() {
@@ -45,16 +52,62 @@ class _DetailPageState extends State<DetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: new AppBar(
-        title: new Text(widget.title),
+//    _touch = new GestureDetector(
+//      onPanStart: _panDown,
+//    );
+
+    _boardPainter = new BoardPainter(_paintDownOffset, _boardBox, _images);
+
+    _canvas = new CustomPaint(
+      key: _paintKey,
+      painter: _boardPainter,
+      child: new ConstrainedBox(
+        constraints: new BoxConstraints.expand(),
       ),
-      body: new Center(
-          child: new CustomPaint(
-        painter: new BoardPainter(_images, _boardBox),
-        child: new Center(),
-      )),
     );
+
+    var canvasListener = new Listener(
+      onPointerDown: (PointerDownEvent event) {
+        RenderBox referenceBox = _paintKey.currentContext.findRenderObject();
+        Offset offset = referenceBox.globalToLocal(event.position);
+        setState(() {
+          _paintDownOffset = offset;
+        });
+      },
+      child: _canvas,
+    );
+
+    var mainTab = new Container(
+        child: new Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+      new Flexible(fit: FlexFit.loose, child: canvasListener),
+      new Flexible(fit: FlexFit.loose, child: new Text('123'))
+    ]));
+
+    _appBar = new AppBar(
+      bottom: new TabBar(
+        tabs: [
+          new Tab(icon: new Icon(Icons.play_arrow)),
+          new Tab(icon: new Icon(Icons.directions_transit)),
+          new Tab(icon: new Icon(Icons.directions_bike)),
+        ],
+      ),
+      title: new Text('Игра'),
+    );
+
+    var tabController = new DefaultTabController(
+        length: 3,
+        child: new Scaffold(
+          appBar: _appBar,
+          body: new TabBarView(
+            children: [
+              mainTab,
+              new Icon(Icons.directions_transit),
+              new Icon(Icons.directions_bike),
+            ],
+          ),
+        ));
+
+    return tabController;
   }
 
   _fetchArticle() async {
@@ -63,7 +116,7 @@ class _DetailPageState extends State<DetailPage> {
     var boardUrl =
         'https://8vc9rklqxh.execute-api.eu-west-1.amazonaws.com/dev/api/v1';
     var uri = '$artcileUrl/article/$_articleId';
-    print(uri);
+    print('FETCH ARTICLE $uri');
     var response = await _httpClient.getUrl(Uri.parse(uri));
     if (response.statusCode == HttpStatus.OK) {
       var json = await response.transform(UTF8.decoder).join();
@@ -75,16 +128,19 @@ class _DetailPageState extends State<DetailPage> {
       });
 
       var boardBoxId = body['boardBoxId'];
-      print(boardBoxId);
+
+      print('BOARD_BOX_ID $boardBoxId');
+
       uri = '$boardUrl/board/$boardBoxId';
+      print('FETCH BOARD_BOX: $uri');
       response = await _httpClient.getUrl(Uri.parse(uri));
       if (response.statusCode == HttpStatus.OK) {
         json = await response.transform(UTF8.decoder).join();
         decoded = JSON.decode(json);
         body = decoded['body'] as Map;
-        print(body);
         setState(() {
           _boardBox = new BoardBox.fromJson(body);
+          print('BOARD_BOX $_boardBox');
         });
       }
     } else {
@@ -103,6 +159,7 @@ class _DetailPageState extends State<DetailPage> {
       });
     }).whenComplete(() {
       print(images);
+
       setState(() {
         _images = new HashMap.from(images);
       });
