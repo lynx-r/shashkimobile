@@ -81,7 +81,7 @@ class BoardPainter extends CustomPainter {
     paint.strokeWidth = 2.0;
     paint.color = black;
     paint.style = PaintingStyle.stroke;
-    canvas.drawRect(Offset.zero & size, new Paint()..color = Colors.red);
+    canvas.drawRect(Offset.zero & size, new Paint()..color = Colors.cyan[50]);
     canvas.drawRect(rect, paint);
 
     if (_point != null) {
@@ -126,7 +126,8 @@ class BoardPainter extends CustomPainter {
         if (h == 0 && (_boardLength.length - i) != _boardDim) {
           // num left
           var row = _boardDim - i / _boardDim - 1;
-          t = new TextSpan(text: '${row.toInt()}', style: textStyle);
+          var num = _boardDim - row.toInt();
+          t = new TextSpan(text: '$num', style: textStyle);
           var row0 = row - 1;
           var shiftBefore10For10Dim =
               (row < 10 ? (_boardDim >= 10 ? 5.0 : 0) : 0);

@@ -52,15 +52,22 @@ class _DetailPageState extends State<DetailPage> {
 
   @override
   Widget build(BuildContext context) {
-//    _touch = new GestureDetector(
-//      onPanStart: _panDown,
-//    );
+    final Orientation orientation = MediaQuery.of(context).orientation;
+    final bool isLandscape = orientation == Orientation.landscape;
 
     _boardPainter = new BoardPainter(_paintDownOffset, _boardBox, _images);
 
+    var canvasSize;
+//    if (isLandscape) {
+//      RenderBox renderBox = context.findRenderObject();
+//      canvasSize = new Size(renderBox / 2, context.size.height);
+//    } else {
+//      canvasSize = context.size;
+//    }
     _canvas = new CustomPaint(
       key: _paintKey,
       painter: _boardPainter,
+//      size: canvasSize,
       child: new ConstrainedBox(
         constraints: new BoxConstraints.expand(),
       ),
@@ -74,54 +81,51 @@ class _DetailPageState extends State<DetailPage> {
           _paintDownOffset = offset;
         });
       },
-      child: _canvas,
+      child: new Card(child: _canvas),
     );
 
-    final Orientation orientation = MediaQuery.of(context).orientation;
-    final bool isLandscape = orientation == Orientation.landscape;
-
-    var mainTab;
+    var container;
+    var notation = new Card(
+      color: Colors.yellow[100],
+        child: new Padding(
+            padding: new EdgeInsets.all(5.0),
+            child: new ConstrainedBox(
+                constraints: new BoxConstraints.expand(),
+                child: new Text('Нотация', textAlign: TextAlign.center))));
+    var description = new Card(
+      color: Colors.green[50],
+        child: new Padding(
+            padding: new EdgeInsets.all(5.0),
+            child: new ConstrainedBox(
+                constraints: new BoxConstraints.expand(),
+                child: new Text('123'))));
     if (isLandscape) {
-      mainTab = new Container(
+      container = new Container(
           child: new Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
-        new Expanded(child: canvasListener),
-        new Text('Нотация' * 2),
-        new Flexible(fit: FlexFit.loose, child: new Text('123'))
+        new Expanded(flex: 3, child: canvasListener),
+        new Expanded(flex: 1, child: notation),
+        new Expanded(flex: 2, child: description)
       ]));
     } else {
-      mainTab = new Container(
+      container = new Container(
           child: new Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
         new Flexible(
-            fit: FlexFit.loose,
             child: new Row(
-              children: <Widget>[
-                new Expanded(child: canvasListener),
-                new Text('Нотация' * 2)
-              ],
-            )),
-        new Flexible(fit: FlexFit.loose, child: new Text('123'))
+          children: <Widget>[
+            new Expanded(flex: 3, child: canvasListener),
+            new Expanded(flex: 1, child: notation)
+          ],
+        )),
+        new Flexible(child: description)
       ]));
     }
     _appBar = new AppBar(
-      bottom: new TabBar(
-        tabs: [
-          new Tab(icon: new Icon(Icons.play_arrow)),
-          new Tab(icon: new Icon(Icons.directions_transit)),
-          new Tab(icon: new Icon(Icons.directions_bike)),
-        ],
-      ),
       title: new Text('Игра'),
     );
 
     var scaffold = new Scaffold(
       appBar: _appBar,
-      body: new TabBarView(
-        children: [
-          mainTab,
-          new Icon(Icons.directions_transit),
-          new Icon(Icons.directions_bike),
-        ],
-      ),
+      body: container,
     );
 
     var tabController = new DefaultTabController(length: 3, child: scaffold);
