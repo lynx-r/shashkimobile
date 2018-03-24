@@ -69,9 +69,8 @@ class BoardPainter extends CustomPainter {
     var black = Colors.black54;
     var white = Colors.white70;
     var side = size.shortestSide;
-    var numWidth = _boardDim > 9 ? 5.0 : 15.0;
-    var shiftTop = 10.0;
-    var shiftLeft = numWidth / 1.5;
+    var shiftTop = 0.0; // _boardDim >= 10 ? 0.0 : 12.0;
+    var shiftLeft = 0.0; //_boardDim >= 10 ? 0 : 8.0;
     var squareWidth = (side / _boardDim);
     var textStyle = new TextStyle(color: Colors.black87, fontSize: 14.0);
     var rect = new Offset(squareWidth - shiftLeft, shiftTop) &
@@ -129,9 +128,11 @@ class BoardPainter extends CustomPainter {
           var num = _boardDim - row.toInt();
           t = new TextSpan(text: '$num', style: textStyle);
           var row0 = row - 1;
+          var width = textStyle.fontSize;
+          width += width / 2.5;
           var shiftBefore10For10Dim =
-              (row < 10 ? (_boardDim >= 10 ? 5.0 : 0) : 0);
-          offset = new Offset(shiftLeft + shiftBefore10For10Dim,
+              (num < 10 ? (_boardDim >= 10 ? textStyle.fontSize / 4.0 : 0) : 0);
+          offset = new Offset(rect.left - width + shiftBefore10For10Dim,
               row0 * squareWidth + squareWidth / 3.5 + shiftTop);
         }
         if (h != 0 && _boardLength.length - i <= _boardDim) {
@@ -139,7 +140,7 @@ class BoardPainter extends CustomPainter {
           var col = (_boardLength.length - i - _boardDim) * -1;
           t = new TextSpan(text: ALPH[col], style: textStyle);
           offset = new Offset(col * squareWidth - shiftLeft + squareWidth / 2.5,
-              squareWidth * (_boardDim - 1) + squareWidth / 6 + shiftTop);
+              squareWidth * (_boardDim - 1) + shiftTop + textStyle.fontSize / 2);
         }
         if (t != null) {
           var painter =
