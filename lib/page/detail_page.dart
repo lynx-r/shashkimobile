@@ -57,48 +57,34 @@ class _DetailPageState extends State<DetailPage> {
 
     _boardPainter = new BoardPainter(_paintDownOffset, _boardBox, _images);
 
-    var canvasSize;
-//    if (isLandscape) {
-//      RenderBox renderBox = context.findRenderObject();
-//      canvasSize = new Size(renderBox / 2, context.size.height);
-//    } else {
-//      canvasSize = context.size;
-//    }
     _canvas = new CustomPaint(
       key: _paintKey,
       painter: _boardPainter,
-//      size: canvasSize,
       child: new ConstrainedBox(
         constraints: new BoxConstraints.expand(),
       ),
     );
 
     var canvasListener = new Listener(
-      onPointerDown: (PointerDownEvent event) {
-        RenderBox referenceBox = _paintKey.currentContext.findRenderObject();
-        Offset offset = referenceBox.globalToLocal(event.position);
-        setState(() {
-          _paintDownOffset = offset;
-        });
-      },
-      child: new Card(child: _canvas),
+      onPointerDown: _pointerDown,
+      child: new Card(color: Colors.cyan[50], child: _canvas),
     );
 
     var container;
     var notation = new Card(
-      color: Colors.yellow[100],
+        color: Colors.yellow[100],
         child: new Padding(
             padding: new EdgeInsets.all(5.0),
             child: new ConstrainedBox(
                 constraints: new BoxConstraints.expand(),
                 child: new Text('Нотация', textAlign: TextAlign.center))));
     var description = new Card(
-      color: Colors.green[50],
+        color: Colors.green[50],
         child: new Padding(
             padding: new EdgeInsets.all(5.0),
             child: new ConstrainedBox(
                 constraints: new BoxConstraints.expand(),
-                child: new Text('123'))));
+                child: new Text('a' * 500))));
     if (isLandscape) {
       container = new Container(
           child: new Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
@@ -120,7 +106,7 @@ class _DetailPageState extends State<DetailPage> {
       ]));
     }
     _appBar = new AppBar(
-      title: new Text('Игра'),
+      title: new Text(_article?.title ?? '', overflow: TextOverflow.ellipsis,),
     );
 
     var scaffold = new Scaffold(
@@ -131,6 +117,14 @@ class _DetailPageState extends State<DetailPage> {
     var tabController = new DefaultTabController(length: 3, child: scaffold);
 
     return tabController;
+  }
+
+  void _pointerDown(PointerDownEvent event) {
+    RenderBox referenceBox = _paintKey.currentContext.findRenderObject();
+    Offset offset = referenceBox.globalToLocal(event.position);
+    setState(() {
+      _paintDownOffset = offset;
+    });
   }
 
   _fetchArticle() async {

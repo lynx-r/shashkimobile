@@ -1,12 +1,8 @@
-import 'dart:developer' as dev;
-import 'dart:collection';
-import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:collection/collection.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:shashkimobile/model/board_box.dart';
 import 'package:shashkimobile/model/rules.dart';
 import 'package:shashkimobile/model/square.dart';
@@ -39,25 +35,8 @@ class BoardPainter extends CustomPainter {
   var strokes = new List<List<Offset>>();
 
   BoardPainter(this._point, this._boardBox, this._images) {
-    this.updateBoard(_boardBox, _images);
+    this._updateBoard(_boardBox, _images);
   }
-
-//  void startStroke(Offset position) {
-//    _point = position;
-//    notifyListeners();
-//  }
-
-//  void appendStroke(Offset position) {
-//    print("appendStroke");
-//    _point = position;
-//    var stroke = strokes.last;
-//    stroke.add(position);
-//    notifyListeners();
-//  }
-
-//  void endStroke() {
-//    notifyListeners();
-//  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -69,18 +48,15 @@ class BoardPainter extends CustomPainter {
     var black = Colors.black54;
     var white = Colors.white70;
     var side = size.shortestSide;
-    var shiftTop = 0.0; // _boardDim >= 10 ? 0.0 : 12.0;
-    var shiftLeft = 0.0; //_boardDim >= 10 ? 0 : 8.0;
     var squareWidth = (side / _boardDim);
     var textStyle = new TextStyle(color: Colors.black87, fontSize: 14.0);
-    var rect = new Offset(squareWidth - shiftLeft, shiftTop) &
+    var rect = new Offset(squareWidth, 0.0) &
         new Size(side - squareWidth, side - squareWidth);
     print(rect);
     var paint = new Paint();
     paint.strokeWidth = 2.0;
     paint.color = black;
     paint.style = PaintingStyle.stroke;
-    canvas.drawRect(Offset.zero & size, new Paint()..color = Colors.cyan[50]);
     canvas.drawRect(rect, paint);
 
     if (_point != null) {
@@ -100,8 +76,8 @@ class BoardPainter extends CustomPainter {
         paint.color = black;
         var h = square.h + 1;
         var v = square.v;
-        var width = squareWidth * h - shiftLeft;
-        var offset = new Offset(width, v * squareWidth + shiftTop);
+        var width = squareWidth * h;
+        var offset = new Offset(width, v * squareWidth);
         var rect = offset & squareSize;
         canvas.drawRect(rect, paint);
         var draught = square.draught;
@@ -133,14 +109,14 @@ class BoardPainter extends CustomPainter {
           var shiftBefore10For10Dim =
               (num < 10 ? (_boardDim >= 10 ? textStyle.fontSize / 4.0 : 0) : 0);
           offset = new Offset(rect.left - width + shiftBefore10For10Dim,
-              row0 * squareWidth + squareWidth / 3.5 + shiftTop);
+              row0 * squareWidth + squareWidth / 3.5);
         }
         if (h != 0 && _boardLength.length - i <= _boardDim) {
           // ALPH bottom
           var col = (_boardLength.length - i - _boardDim) * -1;
           t = new TextSpan(text: ALPH[col], style: textStyle);
-          offset = new Offset(col * squareWidth - shiftLeft + squareWidth / 2.5,
-              squareWidth * (_boardDim - 1) + shiftTop + textStyle.fontSize / 2);
+          offset = new Offset(col * squareWidth + squareWidth / 2.5,
+              squareWidth * (_boardDim - 1) + textStyle.fontSize / 2);
         }
         if (t != null) {
           var painter =
@@ -188,7 +164,7 @@ class BoardPainter extends CustomPainter {
   bool shouldRebuildSemantics(BoardPainter oldDelegate) =>
       shouldRepaint(oldDelegate);
 
-  void updateBoard(boardBox, images) {
+  void _updateBoard(boardBox, images) {
     this._boardBox = boardBox;
     this._images = images;
 
