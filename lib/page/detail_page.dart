@@ -77,12 +77,31 @@ class _DetailPageState extends State<DetailPage> {
       child: _canvas,
     );
 
-    var mainTab = new Container(
-        child: new Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
-      new Flexible(fit: FlexFit.loose, child: canvasListener),
-      new Flexible(fit: FlexFit.loose, child: new Text('123'))
-    ]));
+    final Orientation orientation = MediaQuery.of(context).orientation;
+    final bool isLandscape = orientation == Orientation.landscape;
 
+    var mainTab;
+    if (isLandscape) {
+      mainTab = new Container(
+          child: new Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
+        new Expanded(child: canvasListener),
+        new Text('Нотация' * 2),
+        new Flexible(fit: FlexFit.loose, child: new Text('123'))
+      ]));
+    } else {
+      mainTab = new Container(
+          child: new Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+        new Flexible(
+            fit: FlexFit.loose,
+            child: new Row(
+              children: <Widget>[
+                new Expanded(child: canvasListener),
+                new Text('Нотация' * 2)
+              ],
+            )),
+        new Flexible(fit: FlexFit.loose, child: new Text('123'))
+      ]));
+    }
     _appBar = new AppBar(
       bottom: new TabBar(
         tabs: [
@@ -94,18 +113,18 @@ class _DetailPageState extends State<DetailPage> {
       title: new Text('Игра'),
     );
 
-    var tabController = new DefaultTabController(
-        length: 3,
-        child: new Scaffold(
-          appBar: _appBar,
-          body: new TabBarView(
-            children: [
-              mainTab,
-              new Icon(Icons.directions_transit),
-              new Icon(Icons.directions_bike),
-            ],
-          ),
-        ));
+    var scaffold = new Scaffold(
+      appBar: _appBar,
+      body: new TabBarView(
+        children: [
+          mainTab,
+          new Icon(Icons.directions_transit),
+          new Icon(Icons.directions_bike),
+        ],
+      ),
+    );
+
+    var tabController = new DefaultTabController(length: 3, child: scaffold);
 
     return tabController;
   }

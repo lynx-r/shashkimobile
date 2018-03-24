@@ -81,6 +81,7 @@ class BoardPainter extends CustomPainter {
     paint.strokeWidth = 2.0;
     paint.color = black;
     paint.style = PaintingStyle.stroke;
+    canvas.drawRect(Offset.zero & size, new Paint()..color = Colors.red);
     canvas.drawRect(rect, paint);
 
     if (_point != null) {
