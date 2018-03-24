@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:json_annotation/json_annotation.dart';
 
 part 'draught.g.dart';
@@ -23,10 +25,22 @@ class Draught extends Object with _$DraughtSerializerMixin {
   int h;
   bool highlighted;
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is Draught &&
+              runtimeType == other.runtimeType &&
+              v == other.v &&
+              h == other.h;
+
+  @override
+  int get hashCode =>
+      v.hashCode ^
+      h.hashCode;
 
   @override
   String toString() {
-    return 'Draught{black: $black, queen: $queen, v: $v, h: $h}';
+    return JSON.encode(toJson());
   }
 
   factory Draught.fromJson(Map<String, dynamic> json) => _$DraughtFromJson(json);

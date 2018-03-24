@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:shashkimobile/config/config.dart';
 import 'package:shashkimobile/model/article.dart';
 import 'package:shashkimobile/utils/custom_http_clent.dart';
 import 'package:shashkimobile/utils/utils.dart';
@@ -33,26 +34,6 @@ class _ExplorePageState extends State<ExplorePage> {
   var _scrollController = new ScrollController();
   var _limitArticles = 4;
 
-  Future<bool> _showDialog() {
-    return showDialog(
-        context: context,
-        child: new SimpleDialog(
-          title: const Text('Ошибка соединения'),
-          children: <Widget>[
-            new SimpleDialogOption(
-                onPressed: () {
-                  Navigator.pop(context, true);
-                },
-                child: new Text('Повторить попытку?')),
-            new SimpleDialogOption(
-                onPressed: () {
-                  Navigator.pop(context, false);
-                },
-                child: new Text('Отмена'))
-          ],
-        ));
-  }
-
   void _incrementCounter() {
     setState(() {
       // This call to setState tells the Flutter framework that something has
@@ -64,9 +45,7 @@ class _ExplorePageState extends State<ExplorePage> {
   }
 
   _fetchArticles() async {
-    var url =
-        'https://hzvzddncfb.execute-api.eu-west-1.amazonaws.com/dev/api/v1';
-    var uri = '$url/articles?limit=$_limitArticles';
+    var uri = '$ARTICLE_SERVICE_URL/articles?limit=$_limitArticles';
     print(uri);
     var response = await _httpClient.getUrl(Uri.parse(uri));
     if (response.statusCode == HttpStatus.OK) {
@@ -93,10 +72,10 @@ class _ExplorePageState extends State<ExplorePage> {
   @override
   void initState() {
     super.initState();
-    retryOnError(_fetchArticles, showDialog: _showDialog);
+    retryOnError(_fetchArticles, showDialog: _showReconnectDialog);
     _scrollController.addListener(() {
       if (_scrollController.position.atEdge) {
-        retryOnError(_fetchArticles, showDialog: _showDialog);
+        retryOnError(_fetchArticles, showDialog: _showReconnectDialog);
       }
     });
   }
@@ -188,4 +167,6 @@ class _ExplorePageState extends State<ExplorePage> {
           child: new Icon(Icons.add),
         )); // This trailing comma makes auto-formatting nicer for build methods.
   }
+
+  _showReconnectDialog() => showRetryNetworkConnectionDialog(context);
 }

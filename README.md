@@ -6,3 +6,11 @@ A new Flutter project.
 
 For help getting started with Flutter, view our online
 [documentation](https://flutter.io/).
+
+# generate json
+
+To generate JSON serialization files run command:
+
+```
+./generate_json.sh
+```

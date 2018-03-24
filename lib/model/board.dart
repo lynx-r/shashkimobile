@@ -1,5 +1,7 @@
+import 'dart:convert';
+
 import 'package:shashkimobile/model/board_notation.dart';
-import 'package:shashkimobile/model/rules.dart';
+import 'package:shashkimobile/model/draught.dart';
 import 'package:shashkimobile/model/square.dart';
 
 import 'package:json_annotation/json_annotation.dart';
@@ -14,12 +16,12 @@ class Board extends Object with _$BoardSerializerMixin {
       this.nextSquare,
       this.previousBoards,
       this.nextBoards,
+      this.whiteDraughts,
+      this.blackDraughts,
       this.rules,
       this.black,
-      this.blackTurn,
-      this.strokeNumber,
-      this.stroke,
-      this.notation);
+      this.strokeCount,
+      this.blackTurn);
 
   String id;
   List<Square> squares;
@@ -30,9 +32,15 @@ class Board extends Object with _$BoardSerializerMixin {
   String rules;
   bool black;
   bool blackTurn;
-  int strokeNumber;
-  String stroke;
-  String notation;
+  int strokeCount;
+  Map<String, Draught> whiteDraughts;
+  Map<String, Draught> blackDraughts;
+  int createdAt;
 
   factory Board.fromJson(Map<String, dynamic> json) => _$BoardFromJson(json);
+
+  @override
+  String toString() {
+    return JSON.encode(toJson());
+  }
 }

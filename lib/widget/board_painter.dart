@@ -7,7 +7,7 @@ import 'package:shashkimobile/model/board_box.dart';
 import 'package:shashkimobile/model/rules.dart';
 import 'package:shashkimobile/model/square.dart';
 
-class BoardPainter extends CustomPainter {
+class BoardPainter extends ChangeNotifier implements CustomPainter {
   static const ALPH = const {
     1: 'a',
     2: 'b',
@@ -34,38 +34,30 @@ class BoardPainter extends CustomPainter {
   Map<String, ui.Image> _images = {};
   var strokes = new List<List<Offset>>();
 
+  Square _clickedSquare;
+
   BoardPainter(this._point, this._boardBox, this._images) {
-    this._updateBoard(_boardBox, _images);
+    this._updateBoard(_boardBox);
   }
 
   @override
   void paint(Canvas canvas, Size size) {
     if (_boardBox == null) {
-      print('Canvas not printed');
       return;
     }
-    print('Images got $_images');
     var black = Colors.black54;
     var white = Colors.white70;
+    var highlighted = Colors.lightBlue;
     var side = size.shortestSide;
     var squareWidth = (side / _boardDim);
     var textStyle = new TextStyle(color: Colors.black87, fontSize: 14.0);
     var rect = new Offset(squareWidth, 0.0) &
         new Size(side - squareWidth, side - squareWidth);
-    print(rect);
     var paint = new Paint();
     paint.strokeWidth = 2.0;
     paint.color = black;
     paint.style = PaintingStyle.stroke;
     canvas.drawRect(rect, paint);
-
-    if (_point != null) {
-      Paint strokePaint = new Paint();
-      strokePaint.color = Colors.black;
-      strokePaint.style = PaintingStyle.fill;
-      canvas.drawCircle(_point, 5.0, strokePaint);
-      print(_point);
-    }
 
     var squareSize = new Size(squareWidth, squareWidth);
     paint.style = PaintingStyle.fill;
@@ -73,57 +65,25 @@ class BoardPainter extends CustomPainter {
     for (var i in _boardLength) {
       var square = _squares[i];
       if (square != null) {
-        paint.color = black;
-        var h = square.h + 1;
-        var v = square.v;
-        var width = squareWidth * h;
-        var offset = new Offset(width, v * squareWidth);
-        var rect = offset & squareSize;
-        canvas.drawRect(rect, paint);
-        var draught = square.draught;
-        if (draught != null) {
-          paint.color = draught.black ? black : white;
-          var rang = draught.queen ? 'queen' : 'draught';
-          var color = draught.black ? 'black' : 'white';
-          var image = _images['${color}_$rang'];
-          if (image == null) continue;
-          var div = image.width / rect.width;
-          var scale = 1 / div;
-          canvas.translate(offset.dx, offset.dy);
-          canvas.scale(scale, scale);
-          canvas.drawImage(image, Offset.zero, paint);
-          canvas.scale(div, div);
-          canvas.translate(-offset.dx, -offset.dy);
-        }
+        _drawSquare(paint, highlighted, black, white, square, squareWidth,
+            squareSize, canvas);
       } else {
-        var t, offset;
-        var h = i % _boardDim;
-        if (h == 0 && (_boardLength.length - i) != _boardDim) {
-          // num left
-          var row = _boardDim - i / _boardDim - 1;
-          var num = _boardDim - row.toInt();
-          t = new TextSpan(text: '$num', style: textStyle);
-          var row0 = row - 1;
-          var width = textStyle.fontSize;
-          width += width / 2.5;
-          var shiftBefore10For10Dim =
-              (num < 10 ? (_boardDim >= 10 ? textStyle.fontSize / 4.0 : 0) : 0);
-          offset = new Offset(rect.left - width + shiftBefore10For10Dim,
-              row0 * squareWidth + squareWidth / 3.5);
-        }
-        if (h != 0 && _boardLength.length - i <= _boardDim) {
-          // ALPH bottom
-          var col = (_boardLength.length - i - _boardDim) * -1;
-          t = new TextSpan(text: ALPH[col], style: textStyle);
-          offset = new Offset(col * squareWidth + squareWidth / 2.5,
-              squareWidth * (_boardDim - 1) + textStyle.fontSize / 2);
-        }
-        if (t != null) {
-          var painter =
-              new TextPainter(text: t, textDirection: TextDirection.ltr);
-          painter.layout();
-          painter.paint(canvas, offset);
-        }
+        _drawCoords(i, textStyle, rect, squareWidth, canvas);
+      }
+    }
+    if (_clickedSquare != null) {
+      if (_clickedSquare.draught != null) {
+        // highlight
+        BoardBox.highlight(_boardBox, _clickedSquare).then((boardBox) {
+          _point = _clickedSquare = null;
+          _updateBoard(boardBox);
+          notifyListeners();
+        }).catchError((err) {
+          print(err);
+        });
+      } else {
+        // move
+
       }
     }
   }
@@ -164,9 +124,94 @@ class BoardPainter extends CustomPainter {
   bool shouldRebuildSemantics(BoardPainter oldDelegate) =>
       shouldRepaint(oldDelegate);
 
-  void _updateBoard(boardBox, images) {
+  @override
+  bool hitTest(ui.Offset position) => null;
+
+  _drawSquare(
+      ui.Paint paint,
+      ui.Color highlighted,
+      ui.Color black,
+      ui.Color white,
+      Square square,
+      double squareWidth,
+      ui.Size squareSize,
+      ui.Canvas canvas) {
+    paint.color = black;
+    if (square.highlighted) {
+      paint.color = highlighted;
+    }
+    var h = square.h + 1;
+    var v = square.v;
+    var width = squareWidth * h;
+    var offset = new Offset(width, v * squareWidth);
+    var rect = offset & squareSize;
+    canvas.drawRect(rect, paint);
+
+    var draught = square.draught;
+    if (draught != null) {
+      var rang = draught.queen ? 'queen' : 'draught';
+      var color = draught.black ? 'black' : 'white';
+      var image = _images['${color}_$rang'];
+      if (image == null) return;
+
+      paint.color = draught.black ? black : white;
+      var blendModeOld = paint.blendMode;
+      var blendMode = BlendMode.plus;
+      if (_point != null &&
+          rect.contains(_point) &&
+          draught.black == _boardBox.board.black) {
+        paint.blendMode = blendMode;
+        _clickedSquare = square;
+      }
+      if (draught.black == _boardBox.board.black &&
+          draught == _boardBox.board.selectedSquare?.draught) {
+        paint.blendMode = blendMode;
+      }
+      var div = image.width / rect.width;
+      var scale = 1 / div;
+      canvas.translate(offset.dx, offset.dy);
+      canvas.scale(scale, scale);
+      canvas.drawImage(image, Offset.zero, paint);
+      canvas.scale(div, div);
+      canvas.translate(-offset.dx, -offset.dy);
+
+      paint.blendMode = blendModeOld;
+    }
+  }
+
+  void _drawCoords(i, TextStyle textStyle, ui.Rect rect, double squareWidth,
+      ui.Canvas canvas) {
+    var t, offset;
+    var h = i % _boardDim;
+    if (h == 0 && (_boardLength.length - i) != _boardDim) {
+      // num left
+      var row = _boardDim - i / _boardDim - 1;
+      var num = _boardDim - row.toInt();
+      t = new TextSpan(text: '$num', style: textStyle);
+      var row0 = row - 1;
+      var width = textStyle.fontSize;
+      width += width / 2.5;
+      var shiftBefore10For10Dim =
+          (num < 10 ? (_boardDim >= 10 ? textStyle.fontSize / 4.0 : 0) : 0);
+      offset = new Offset(rect.left - width + shiftBefore10For10Dim,
+          row0 * squareWidth + squareWidth / 3.5);
+    }
+    if (h != 0 && _boardLength.length - i <= _boardDim) {
+      // ALPH bottom
+      var col = (_boardLength.length - i - _boardDim) * -1;
+      t = new TextSpan(text: ALPH[col], style: textStyle);
+      offset = new Offset(col * squareWidth + squareWidth / 2.5,
+          squareWidth * (_boardDim - 1) + textStyle.fontSize / 2);
+    }
+    if (t != null) {
+      var painter = new TextPainter(text: t, textDirection: TextDirection.ltr);
+      painter.layout();
+      painter.paint(canvas, offset);
+    }
+  }
+
+  void _updateBoard(boardBox) {
     this._boardBox = boardBox;
-    this._images = images;
 
     if (_boardBox != null) {
       var rules = Rules.fromString(_boardBox.board.rules);
@@ -188,7 +233,4 @@ class BoardPainter extends CustomPainter {
       }
     }
   }
-
-  @override
-  bool hitTest(ui.Offset position) => null;
 }

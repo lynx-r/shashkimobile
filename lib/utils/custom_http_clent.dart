@@ -86,9 +86,10 @@ class CustomHttpClient {
     });
   }
 
-  Future<HttpClientResponse> postUrl(Uri url) {
+  Future<HttpClientResponse> postUrl(Uri url, String json) {
     return _httpClient.postUrl(url).then((request) {
       _configRequest(request);
+      request.write(json);
       return request.close();
     });
   }
@@ -108,6 +109,6 @@ class CustomHttpClient {
   }
 
   void _configRequest(HttpClientRequest request) {
-    request.headers.add('header1', 'value1');
+    request.headers.add('Content-Type', 'text/json');
   }
 }

@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
           if (path[1] != null) {
             return new MaterialPageRoute(
               builder: (context) =>
-              new DetailPage(path[1], title: 'Подробности'),
+              new DetailPage(path[1]),
               settings: settings,
             );
           }

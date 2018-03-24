@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:shashkimobile/config/config.dart';
 import 'package:shashkimobile/model/article.dart';
 import 'package:shashkimobile/model/board_box.dart';
 import 'package:shashkimobile/utils/custom_http_clent.dart';
@@ -65,9 +66,9 @@ class _DetailPageState extends State<DetailPage> {
       ),
     );
 
-    var canvasListener = new Listener(
-      onPointerDown: _pointerDown,
-      child: new Card(color: Colors.cyan[50], child: _canvas),
+    var canvasListener = new Card(
+      color: Colors.cyan[50],
+      child: new Listener(onPointerDown: _pointerDown, child: _canvas),
     );
 
     var container;
@@ -106,7 +107,10 @@ class _DetailPageState extends State<DetailPage> {
       ]));
     }
     _appBar = new AppBar(
-      title: new Text(_article?.title ?? '', overflow: TextOverflow.ellipsis,),
+      title: new Text(
+        _article?.title ?? '',
+        overflow: TextOverflow.ellipsis,
+      ),
     );
 
     var scaffold = new Scaffold(
@@ -128,11 +132,7 @@ class _DetailPageState extends State<DetailPage> {
   }
 
   _fetchArticle() async {
-    var artcileUrl =
-        'https://hzvzddncfb.execute-api.eu-west-1.amazonaws.com/dev/api/v1';
-    var boardUrl =
-        'https://8vc9rklqxh.execute-api.eu-west-1.amazonaws.com/dev/api/v1';
-    var uri = '$artcileUrl/article/$_articleId';
+    var uri = '$ARTICLE_SERVICE_URL/article/$_articleId';
     print('FETCH ARTICLE $uri');
     var response = await _httpClient.getUrl(Uri.parse(uri));
     if (response.statusCode == HttpStatus.OK) {
@@ -148,7 +148,7 @@ class _DetailPageState extends State<DetailPage> {
 
       print('BOARD_BOX_ID $boardBoxId');
 
-      uri = '$boardUrl/board/$boardBoxId';
+      uri = '$BOARD_SERVICE_URL/board/$boardBoxId';
       print('FETCH BOARD_BOX: $uri');
       response = await _httpClient.getUrl(Uri.parse(uri));
       if (response.statusCode == HttpStatus.OK) {

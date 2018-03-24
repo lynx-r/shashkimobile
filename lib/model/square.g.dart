@@ -15,7 +15,6 @@ Square _$SquareFromJson(Map<String, dynamic> json) => new Square(
     json['draught'] == null
         ? null
         : new Draught.fromJson(json['draught'] as Map<String, dynamic>),
-    json['size'] as int,
     json['notation'] as String);
 
 abstract class _$SquareSerializerMixin {
@@ -25,7 +24,6 @@ abstract class _$SquareSerializerMixin {
   bool get highlighted;
   bool get occupied;
   Draught get draught;
-  int get size;
   String get notation;
   Map<String, dynamic> toJson() => <String, dynamic>{
         'v': v,
@@ -34,7 +32,6 @@ abstract class _$SquareSerializerMixin {
         'highlighted': highlighted,
         'occupied': occupied,
         'draught': draught,
-        'size': size,
         'notation': notation
       };
 }

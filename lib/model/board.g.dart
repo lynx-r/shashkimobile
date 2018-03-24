@@ -28,12 +28,25 @@ Board _$BoardFromJson(Map<String, dynamic> json) => new Board(
             ? null
             : new BoardIdNotation.fromJson(e as Map<String, dynamic>))
         ?.toList(),
+    json['whiteDraughts'] == null
+        ? null
+        : new Map<String, Draught>.fromIterables(
+            (json['whiteDraughts'] as Map<String, dynamic>).keys,
+            (json['whiteDraughts'] as Map).values.map((e) => e == null
+                ? null
+                : new Draught.fromJson(e as Map<String, dynamic>))),
+    json['blackDraughts'] == null
+        ? null
+        : new Map<String, Draught>.fromIterables(
+            (json['blackDraughts'] as Map<String, dynamic>).keys,
+            (json['blackDraughts'] as Map).values.map((e) => e == null
+                ? null
+                : new Draught.fromJson(e as Map<String, dynamic>))),
     json['rules'] as String,
     json['black'] as bool,
-    json['blackTurn'] as bool,
-    json['strokeNumber'] as int,
-    json['stroke'] as String,
-    json['notation'] as String);
+    json['strokeCount'] as int,
+    json['blackTurn'] as bool)
+  ..createdAt = json['createdAt'] as int;
 
 abstract class _$BoardSerializerMixin {
   String get id;
@@ -45,9 +58,10 @@ abstract class _$BoardSerializerMixin {
   String get rules;
   bool get black;
   bool get blackTurn;
-  int get strokeNumber;
-  String get stroke;
-  String get notation;
+  int get strokeCount;
+  Map<String, Draught> get whiteDraughts;
+  Map<String, Draught> get blackDraughts;
+  int get createdAt;
   Map<String, dynamic> toJson() => <String, dynamic>{
         'id': id,
         'squares': squares,
@@ -58,8 +72,9 @@ abstract class _$BoardSerializerMixin {
         'rules': rules,
         'black': black,
         'blackTurn': blackTurn,
-        'strokeNumber': strokeNumber,
-        'stroke': stroke,
-        'notation': notation
+        'strokeCount': strokeCount,
+        'whiteDraughts': whiteDraughts,
+        'blackDraughts': blackDraughts,
+        'createdAt': createdAt
       };
 }

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:json_annotation/json_annotation.dart';
 import 'package:shashkimobile/model/notation_stroke.dart';
 
@@ -30,4 +32,9 @@ class Notation extends Object with _$NotationSerializerMixin {
   List<NotationStroke> notationStrokes;
 
   factory Notation.fromJson(Map<String, dynamic> json) => _$NotationFromJson(json);
+
+  @override
+  String toString() {
+    return JSON.encode(toJson());
+  }
 }
